@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include <utility>
+
 TVector VectorMult(TVector vec, const double scalar) {
     for (double& x : vec) {
         x *= scalar;
@@ -20,7 +22,7 @@ TVector VectorSum(const TVector& lhs, const TVector& rhs) {
 
 TMatrix MatrixMult(TMatrix mat, const double scalar) {
     for (TVector& x : mat) {
-        VectorMult(x, scalar);
+        x = VectorMult(std::move(x), scalar);
     }
     return mat;
 }

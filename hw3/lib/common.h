@@ -5,6 +5,7 @@
 #include <erl_nif.h>
 
 extern ErlNifResourceType* VectorType;
+extern ErlNifResourceType* MatrixType;
 
 TVector ListToVectorImpl(ErlNifEnv* env, ERL_NIF_TERM term);
 ERL_NIF_TERM VectorToListImpl(ErlNifEnv* env, const TVector& vector);
