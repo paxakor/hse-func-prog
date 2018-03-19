@@ -1,11 +1,6 @@
-all: matrix vector
+all: matrix
 
 matrix:
 	mkdir -p build
-	g++ -fPIC -shared -o build/matrix.so lib/core.cpp lib/matrix.cpp \
-		lib/common.cpp -I /usr/lib/erlang/erts-9.2/include -I lib
-
-vector:
-	mkdir -p build
-	g++ -fPIC -shared -o build/vector.so lib/core.cpp lib/vector.cpp \
-		lib/common.cpp -I /usr/lib/erlang/erts-9.2/include -I lib
+	g++ -O2 -Wall -Wextra -Wpedantic -fPIC -shared -o build/matrix.so lib/core.cpp lib/matrix.cpp \
+		-I /usr/lib/erlang/erts-9.3/include -I lib
