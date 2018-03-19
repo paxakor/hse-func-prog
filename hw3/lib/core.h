@@ -196,6 +196,8 @@ TMatrix MatrixMultImpl(TMatrix mat, const double scalar);
 TMatrix MatrixMultImpl(const TMatrix& lhs, const TMatrix& rhs);
 TMatrix MatrixSumImpl(const TMatrix& lhs, const TMatrix& rhs);
 
-TMatrix GetRow(TMatrix matrix, size_t i);
-TMatrix GetColumn(TMatrix matrix, size_t i);
-TMatrix GetDiag(TMatrix matrix, ssize_t i);
+TMatrix GetRowImpl(TMatrix matrix, size_t i);
+TMatrix GetColumnImpl(TMatrix matrix, size_t i);
+TMatrix GetDiagImpl(TMatrix matrix, ssize_t i);
+
+TMatrix TransposeRowToColumnImpl(TMatrix row);

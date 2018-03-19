@@ -7,7 +7,6 @@
 #include <erl_nif.h>
 
 #include <cassert>
-#include <cstdio>
 
 static ErlNifResourceType* MatrixType = NULL;
 
@@ -80,7 +79,7 @@ namespace {
         const size_t rows = matrix.GetHeight();
         terms.reserve(rows);
         for (unsigned i = 0; i < rows; ++i) {
-            terms.emplace_back(VectorToListImpl(env, GetRow(matrix, i)));
+            terms.emplace_back(VectorToListImpl(env, GetRowImpl(matrix, i)));
         }
         return enif_make_list_from_array(env, terms.data(), terms.size());
     }
@@ -141,19 +140,55 @@ ERL_NIF_TERM MatrixMult(ErlNifEnv* env, int /* argc */, const ERL_NIF_TERM argv[
     }
 }
 
+ERL_NIF_TERM MatrixVectorMult(ErlNifEnv* env, int /* argc */, const ERL_NIF_TERM argv[]) {
+    return MatrixToTerm(env, MatrixMultImpl(TermToMatrix(env, argv[0]), TermToMatrix(env, argv[1])));
+}
+
 ERL_NIF_TERM MatrixSum(ErlNifEnv* env, int /* argc */, const ERL_NIF_TERM argv[]) {
     const TMatrix lhs = TermToMatrix(env, argv[0]);
     const TMatrix rhs = TermToMatrix(env, argv[1]);
     return MatrixToTerm(env, MatrixSumImpl(lhs, rhs));
 }
 
+ERL_NIF_TERM GetRow(ErlNifEnv* env, int /* argc */, const ERL_NIF_TERM argv[]) {
+    unsigned n;
+    assert(enif_get_uint(env, argv[1], &n));
+    return MatrixToTerm(env, GetRowImpl(TermToMatrix(env, argv[0]), n));
+}
+
+ERL_NIF_TERM GetColumn(ErlNifEnv* env, int /* argc */, const ERL_NIF_TERM argv[]) {
+    unsigned n;
+    assert(enif_get_uint(env, argv[1], &n));
+    return MatrixToTerm(env, GetColumnImpl(TermToMatrix(env, argv[0]), n));
+}
+
+ERL_NIF_TERM GetDiag(ErlNifEnv* env, int /* argc */, const ERL_NIF_TERM argv[]) {
+    int n;
+    assert(enif_get_int(env, argv[1], &n));
+    return MatrixToTerm(env, GetDiagImpl(TermToMatrix(env, argv[0]), n));
+}
+
+
+ERL_NIF_TERM TransposeRowToColumn(ErlNifEnv* env, int /* argc */, const ERL_NIF_TERM argv[]) {
+    return MatrixToTerm(env, TransposeRowToColumnImpl(TermToMatrix(env, argv[0])));
+}
+
 static ErlNifFunc Functions[] = {
     {"listToMatrix", 1, ListToMatrix},
     {"listToVector", 1, ListToVector},
+
     {"matrixToList", 1, MatrixToList},
     {"vectorToList", 1, VectorToList},
+
     {"matrixMult", 2, MatrixMult},
+    {"matrixVectorMult", 2, MatrixVectorMult},
     {"matrixSum", 2, MatrixSum},
+
+    {"getRow", 2, GetRow},
+    {"getColumn", 2, GetColumn},
+    {"getDiag", 2, GetDiag},
+
+    {"transposeRowToColumn", 1, TransposeRowToColumn},
 };
 
 ERL_NIF_INIT(Elixir.Matrix, Functions, Load, NULL, Upgrade, NULL);

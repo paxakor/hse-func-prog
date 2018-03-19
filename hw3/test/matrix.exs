@@ -21,11 +21,31 @@ defmodule Matrix do
     exit(:nif_not_loaded)
   end
 
-  def matrixMult(_matrix, _scalar) do
+  def matrixMult(_matrix, _scalarOrMatrix) do
+    exit(:nif_not_loaded)
+  end
+
+  def matrixVectorMult(_matrix, _vector) do
     exit(:nif_not_loaded)
   end
 
   def matrixSum(_lhs, _rhs) do
+    exit(:nif_not_loaded)
+  end
+
+  def getRow(_matrix, _n) do
+    exit(:nif_not_loaded)
+  end
+
+  def getColumn(_matrix, _n) do
+    exit(:nif_not_loaded)
+  end
+
+  def getDiag(_matrix, _n) do
+    exit(:nif_not_loaded)
+  end
+
+  def transposeRowToColumn(_row) do
     exit(:nif_not_loaded)
   end
 end
@@ -57,6 +77,9 @@ IO.puts inspect Matrix.matrixToList(Matrix.matrixMult(a, b))
 
 m = [[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 9.0]]
 l = [[5.5, -1.5, 0.0], [0.5, 1.0, -1.0], [0.0, 2.0, 100.0], [100.0, 200.0, 400.0]]
+l2 = [[5.5, -1.5, 0.0, 0.5], [1.0, -1.0, 0.0, 2.0], [100.0, 100.0, 200.0, 400.0]]
 a = Matrix.listToMatrix(m)
 b = Matrix.listToVector(l)
+b2 = Matrix.listToVector(l2)
 IO.puts inspect Matrix.matrixToList(Matrix.matrixMult(a, b))
+IO.puts inspect Matrix.matrixToList(Matrix.matrixVectorMult(a, Matrix.transposeRowToColumn(Matrix.getRow(b2, 1))))
