@@ -2,7 +2,7 @@ defmodule Distributed do
     def connect(_, 0) do
         nil
     end
-    def connect(nodeName, retries) do
+    def connect(nodeName, retries) when retries > 1 do
         if Node.connect(nodeName) do
             true
         else
@@ -13,39 +13,37 @@ defmodule Distributed do
         connect(nodeName, 1000)
     end
 
-    def connect_all([]) do
+    def connect_all([], _) do
         nil
     end
-    def connect_all([head | tail]) do
+    def connect_all([head | tail], node_name) do
         if connect(head) do
-            IO.puts("Connected to worker #{head}")
+            IO.puts(:stderr, "Connected to #{node_name} #{head}")
         else
-            IO.puts("Can not connect to worker #{head}")
-            IO.puts("List of all visible nodes: #{inspect Node.list([:visible, :hidden, :known])}")
+            IO.puts(:stderr, "Can not connect to #{node_name} #{head}")
+            IO.puts(:stderr, "List of all visible nodes: #{inspect Node.list([:visible, :hidden, :known])}")
             exit(:worker_unavailable)
         end
-        connect_all(tail)
+        connect_all(tail, node_name)
     end
 
     def map(workers, func, data) do
         pids = create_workers(workers)
-        Enum.count(pids) |> split_data(data) |> Enum.zip(pids) |> send_tasks(func) |> inspect |> IO.puts
-        recv_results(pids)
+        Enum.count(pids) |> split_data(data) |> Enum.zip(pids) |> send_tasks(func)
+        recv_results(workers)
     end
 
-    def map_worker(master) do
-        IO.puts :stderr, "AAAAA"
+    def map_worker(master, acc) do
         receive do
             {:do_map, ^master, func, data} ->
-                send(master, {:map_result, Node.self(), do_map(func, data)})
+                map_worker(master, acc ++ doMap(func, data))
+            {:end_map, ^master, pid} ->
+                send(pid, {:map_result, Node.self(), acc})
         end
-        IO.puts :stderr, "BBBBB"
-        map_worker(master)
     end
 
     defp create_workers([worker | other]) do
-        pid = Node.spawn_link(worker, Distributed, :map_worker, [Node.self()])
-        IO.puts "ACDFQWR #{inspect pid}"
+        pid = Node.spawn(worker, Distributed, :map_worker, [Node.self(), []])
         [pid] ++ create_workers(other)
     end
 
@@ -59,6 +57,9 @@ defmodule Distributed do
                 result ++ recv_results(other)
         end
     end
+    defp recv_results([]) do
+        nil
+    end
 
     defp split_data(count, data) when count > 1 do
         data_len = Enum.count(data)
@@ -67,7 +68,6 @@ defmodule Distributed do
         other = Enum.slice(data, part_len..data_len)
         [part] ++ split_data(count - 1, other)
     end
-
     defp split_data(1, data) do
         [data]
     end
@@ -76,19 +76,17 @@ defmodule Distributed do
         {data, worker} = worker_with_data
         IO.puts "Sending task to worker: #{inspect worker}"
         send(worker, {:do_map, Node.self(), func, data})
+        send(worker, {:end_map, Node.self(), self()})
         send_tasks(other, func)
     end
-
     defp send_tasks([], _) do
         nil
     end
 
-    defp do_map(func, [head | tail]) do
-        IO.puts :stderr, "IN DO_MAP"
-        [func.(head)] ++ do_map(func, tail)
+    defp doMap(func, [head | tail]) do
+        [func.(head)] ++ doMap(func, tail)
     end
-    defp do_map(_, []) do
-        IO.puts :stderr, "END DO_MAP"
+    defp doMap(_, []) do
         []
     end
 
@@ -114,20 +112,17 @@ defmodule Test do
     end
 
     def play([workers: workers]) do  # master spec
-        IO.puts "I'm a Master"
         workers = String.split(workers, ",") |> Enum.map(fn x -> String.to_atom(x) end)
-        Distributed.connect_all(workers)
+        Distributed.connect_all(workers, "worker")
+        :timer.sleep(1000)
         Distributed.map(workers, fn x -> x * x end, Enum.to_list(1..10))
-        |> inspect
+        |> (fn res -> "Results: #{inspect res}" end).()
         |> IO.puts
     end
 
     def play([master: master]) do  # worker spec
-        IO.puts :stderr, "I'm a Worker"
-        if Distributed.connect(String.to_atom(master)) do
-            IO.puts("Connected to master #{master}")
-        end
-        Distributed.map_worker(master)
+        Distributed.connect_all([String.to_atom(master)], "master")
+        # Distributed.map_worker(master, [])
     end
 
     def play([idle: true]) do

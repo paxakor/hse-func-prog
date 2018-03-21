@@ -12,7 +12,7 @@ id2hash = dict()
 def get_node_name(node_number):
     global id2hash
     if node_number not in id2hash:
-        id2hash[node_number] = "Node" + str(abs(hash(str(node_number + time()))))
+        id2hash[node_number] = "Node" + str(abs(hash(str(node_number + time()))) % 10**5)
     return id2hash[node_number]
 
 
@@ -21,7 +21,7 @@ def get_full_node_name(node_number):
 
 
 class Config():
-    NodeCount = 3
+    NodeCount = 1 + 3
 
     Cookie = "mega_secret_cookie"
     MasterNode = randint(0, NodeCount - 1)
@@ -31,7 +31,7 @@ class Config():
 def magic_run(args, arg_pairs, call):
     for pair in arg_pairs:
         args.extend(pair)
-    print(" ".join(args))
+    # print(" ".join(args))
     call(args)
     print("ENDED:", " ".join(args))
 
@@ -54,8 +54,8 @@ def run_slave(node_number):
     arg_pairs = [
         ("--sname", get_node_name(node_number)),
         ("--cookie", Config.Cookie),
-        # ("-S", Config.FileName),
-        # ("--master", get_full_node_name(Config.MasterNode)),
+        ("-S", Config.FileName),
+        ("--master", get_full_node_name(Config.MasterNode)),
     ]
     magic_run(args, arg_pairs, call=lambda *x: run(*x, stdout=DEVNULL))
 
@@ -70,7 +70,8 @@ def main():
             else:
                 return lambda: run_slave(i)
         else:
-            pids.append(pid)
+            if i == Config.MasterNode:
+                pids.append(pid)
 
     def wait_children():
         for pid in pids:
