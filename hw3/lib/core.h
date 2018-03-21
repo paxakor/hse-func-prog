@@ -194,6 +194,7 @@ public:
 bool CompareShapes(const TMatrix& lhs, const TMatrix& rhs);
 TMatrix MatrixMultImpl(TMatrix mat, const double scalar);
 TMatrix MatrixMultImpl(const TMatrix& lhs, const TMatrix& rhs);
+TMatrix MatrixVectorMultImpl(const TMatrix& lhs, const TMatrix& rhs);
 TMatrix MatrixSumImpl(const TMatrix& lhs, const TMatrix& rhs);
 
 TMatrix GetRowImpl(TMatrix matrix, size_t i);

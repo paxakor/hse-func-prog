@@ -141,7 +141,7 @@ ERL_NIF_TERM MatrixMult(ErlNifEnv* env, int /* argc */, const ERL_NIF_TERM argv[
 }
 
 ERL_NIF_TERM MatrixVectorMult(ErlNifEnv* env, int /* argc */, const ERL_NIF_TERM argv[]) {
-    return MatrixToTerm(env, MatrixMultImpl(TermToMatrix(env, argv[0]), TermToMatrix(env, argv[1])));
+    return MatrixToTerm(env, MatrixVectorMultImpl(TermToMatrix(env, argv[0]), TermToMatrix(env, argv[1])));
 }
 
 ERL_NIF_TERM MatrixSum(ErlNifEnv* env, int /* argc */, const ERL_NIF_TERM argv[]) {
