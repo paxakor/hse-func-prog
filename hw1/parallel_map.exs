@@ -89,28 +89,9 @@ defmodule Distributed do
     defp doMap(_, []) do
         []
     end
-
-
-    def test() do
-        data = Enum.to_list(1..14)
-        result = split_data(4, data)
-        if [[1, 2, 3], [4, 5, 6], [7, 8, 9, 10], [11, 12, 13, 14]] != result do
-            IO.puts "error: #{inspect result} was not expected"
-        end
-    end
 end
 
 defmodule Test do
-    def test_order() do
-        range = Enum.to_list(1..10)
-        f = fn x -> x * x end
-        result = Distributed.map(f, range)
-        expected = Enum.map(range, f)
-        if result != expected do
-            IO.puts("error: #{inspect(result)} != #{inspect(expected)}")
-        end
-    end
-
     def play([workers: workers]) do  # master spec
         workers = String.split(workers, ",") |> Enum.map(fn x -> String.to_atom(x) end)
         Distributed.connect_all(workers, "worker")
@@ -122,7 +103,6 @@ defmodule Test do
 
     def play([master: master]) do  # worker spec
         Distributed.connect_all([String.to_atom(master)], "master")
-        # Distributed.map_worker(master, [])
     end
 
     def play([idle: true]) do
@@ -134,5 +114,4 @@ defmodule Test do
     end
 end
 
-# Distributed.test()
 Test.main()
